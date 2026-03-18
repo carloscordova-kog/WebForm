@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EduRequisite — School Purchase Requisition</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #f0f4f8;
+      color: #2d3748;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(135deg, #1a56a0 0%, #2d7dd2 100%);
+      color: #fff;
+      padding: 20px 32px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.2);
+    }
+    .logo {
+      width: 48px; height: 48px;
+      background: #fff;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px;
+    }
+    header h1 { font-size: 1.7rem; font-weight: 700; letter-spacing: -.3px; }
+    header p  { font-size: .85rem; opacity: .85; margin-top: 2px; }
+
+    /* ── Main card ── */
+    main {
+      max-width: 1280px;
+      margin: 32px auto;
+      padding: 0 16px 48px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.1), 0 4px 16px rgba(0,0,0,.06);
+      overflow: hidden;
+    }
+
+    /* ── Meta fields ── */
+    .meta-section {
+      padding: 24px 28px;
+      border-bottom: 1px solid #e2e8f0;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+    }
+    .meta-section h2 {
+      grid-column: 1 / -1;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #1a56a0;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      margin-bottom: 4px;
+    }
+    .field label {
+      display: block;
+      font-size: .78rem;
+      font-weight: 600;
+      color: #718096;
+      text-transform: uppercase;
+      letter-spacing: .4px;
+      margin-bottom: 5px;
+    }
+    .field input, .field select {
+      width: 100%;
+      border: 1px solid #cbd5e0;
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: .9rem;
+      color: #2d3748;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .field input:focus, .field select:focus {
+      outline: none;
+      border-color: #2d7dd2;
+      box-shadow: 0 0 0 3px rgba(45,125,210,.15);
+    }
+
+    /* ── Section header ── */
+    .section-header {
+      padding: 16px 28px;
+      background: #f7fafc;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .section-header h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #1a56a0;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+    .item-count {
+      font-size: .8rem;
+      color: #718096;
+      background: #edf2f7;
+      padding: 3px 10px;
+      border-radius: 99px;
+    }
+
+    /* ── Line items table ── */
+    .table-wrap { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .88rem;
+    }
+    thead th {
+      background: #ebf4ff;
+      color: #1a56a0;
+      font-weight: 700;
+      font-size: .75rem;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      padding: 10px 10px;
+      text-align: left;
+      border-bottom: 2px solid #bee3f8;
+      white-space: nowrap;
+    }
+    thead th.num { text-align: center; width: 44px; }
+    thead th.qty, thead th.price, thead th.total { text-align: right; }
+
+    tbody tr { border-bottom: 1px solid #edf2f7; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #f7fbff; }
+
+    td { padding: 7px 6px; vertical-align: middle; }
+    td.num { text-align: center; color: #a0aec0; font-weight: 600; font-size: .8rem; }
+
+    td input, td select {
+      width: 100%;
+      border: 1px solid #e2e8f0;
+      border-radius: 5px;
+      padding: 6px 8px;
+      font-size: .85rem;
+      color: #2d3748;
+      background: #fff;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    td input:focus, td select:focus {
+      outline: none;
+      border-color: #2d7dd2;
+      box-shadow: 0 0 0 3px rgba(45,125,210,.12);
+    }
+    td input.invalid { border-color: #fc8181; }
+
+    .col-vendor  { min-width: 140px; }
+    .col-desc    { min-width: 180px; }
+    .col-qty     { width: 80px; }
+    .col-unit    { width: 110px; }
+    .col-price   { width: 110px; }
+    .col-total   { width: 120px; text-align: right; }
+
+    .line-total {
+      font-weight: 700;
+      color: #2d7dd2;
+      white-space: nowrap;
+      padding-right: 14px;
+      text-align: right;
+    }
+    .line-total.empty { color: #cbd5e0; font-weight: 400; }
+
+    /* Price input wrapper */
+    .price-wrap { position: relative; }
+    .price-wrap span {
+      position: absolute; left: 8px; top: 50%;
+      transform: translateY(-50%);
+      color: #a0aec0; font-size: .82rem; pointer-events: none;
+    }
+    .price-wrap input { padding-left: 18px; }
+
+    /* ── Totals bar ── */
+    .totals-bar {
+      padding: 18px 28px;
+      border-top: 2px solid #bee3f8;
+      background: #ebf4ff;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 10px;
+    }
+    .totals-bar .label {
+      font-size: .9rem;
+      font-weight: 600;
+      color: #2c5282;
+      text-transform: uppercase;
+      letter-spacing: .4px;
+    }
+    .totals-bar .grand-total {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #1a56a0;
+      min-width: 140px;
+      text-align: right;
+    }
+
+    /* ── Actions ── */
+    .actions {
+      padding: 20px 28px;
+      border-top: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      background: #fff;
+    }
+
+    button {
+      padding: 10px 26px;
+      border: none;
+      border-radius: 7px;
+      font-size: .9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s, transform .1s, box-shadow .15s;
+    }
+    button:active { transform: scale(.97); }
+
+    .btn-clear {
+      background: #fff;
+      color: #718096;
+      border: 1.5px solid #cbd5e0;
+    }
+    .btn-clear:hover { background: #f7fafc; border-color: #a0aec0; }
+
+    .btn-submit {
+      background: #2d7dd2;
+      color: #fff;
+      box-shadow: 0 2px 6px rgba(45,125,210,.35);
+    }
+    .btn-submit:hover:not(:disabled) { background: #1a56a0; }
+    .btn-submit:disabled {
+      background: #bee3f8;
+      color: #90cdf4;
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      font-size: .78rem;
+      color: #a0aec0;
+      padding: 16px;
+    }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(60px);
+      background: #2f855a; color: #fff;
+      padding: 12px 24px; border-radius: 8px;
+      font-size: .9rem; font-weight: 600;
+      box-shadow: 0 4px 16px rgba(0,0,0,.2);
+      transition: transform .3s ease, opacity .3s ease;
+      opacity: 0; pointer-events: none;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+    /* Responsive */
+    @media (max-width: 700px) {
+      header { padding: 16px; }
+      header h1 { font-size: 1.3rem; }
+      .meta-section, .actions { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🎓</div>
+  <div>
+    <h1>EduRequisite</h1>
+    <p>School Purchase Requisition System</p>
+  </div>
+</header>
+
+<main>
+  <div class="card">
+
+    <!-- Meta info -->
+    <div class="meta-section">
+      <h2>Requisition Details</h2>
+      <div class="field">
+        <label>Requisition #</label>
+        <input type="text" id="reqNumber" placeholder="e.g. REQ-2026-001" />
+      </div>
+      <div class="field">
+        <label>Requested By</label>
+        <input type="text" id="reqBy" placeholder="Full name" />
+      </div>
+      <div class="field">
+        <label>Department / Grade</label>
+        <input type="text" id="reqDept" placeholder="e.g. Science Dept." />
+      </div>
+      <div class="field">
+        <label>School / Campus</label>
+        <input type="text" id="reqSchool" placeholder="School name" />
+      </div>
+      <div class="field">
+        <label>Date Needed</label>
+        <input type="date" id="reqDate" />
+      </div>
+      <div class="field">
+        <label>Academic Year</label>
+        <input type="text" id="reqYear" placeholder="e.g. 2025–2026" />
+      </div>
+    </div>
+
+    <!-- Line items -->
+    <div class="section-header">
+      <h2>Line Items</h2>
+      <span class="item-count" id="itemCountLabel">0 of 20 items filled</span>
+    </div>
+
+    <div class="table-wrap">
+      <table id="lineItemsTable">
+        <thead>
+          <tr>
+            <th class="num">#</th>
+            <th>Vendor Name</th>
+            <th>Item Description</th>
+            <th class="qty">Qty</th>
+            <th>Unit</th>
+            <th class="price">Unit Price</th>
+            <th class="total">Line Total</th>
+          </tr>
+        </thead>
+        <tbody id="lineItemsBody">
+          <!-- rows injected by JS -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Grand total -->
+    <div class="totals-bar">
+      <span class="label">Grand Total:</span>
+      <span class="grand-total" id="grandTotal">$0.00</span>
+    </div>
+
+    <!-- Buttons -->
+    <div class="actions">
+      <button class="btn-clear" id="btnClear">Clear All Fields</button>
+      <button class="btn-submit" id="btnSubmit" disabled>Submit Requisition</button>
+    </div>
+
+  </div>
+</main>
+
+<footer>EduRequisite &copy; 2026 — For Educational Use Only</footer>
+
+<div id="toast">Requisition submitted successfully!</div>
+
+<script>
+  const MAX_ROWS = 20;
+  const UNIT_OPTIONS = [
+    '', 'Each', 'Box', 'Case', 'Pack', 'Set', 'Ream', 'Roll',
+    'Dozen', 'Pair', 'Kit', 'Bundle', 'Carton', 'Bottle', 'Gallon',
+    'Pound', 'Sheet', 'Piece', 'License', 'Subscription'
+  ];
+
+  const tbody = document.getElementById('lineItemsBody');
+  const grandTotalEl = document.getElementById('grandTotal');
+  const btnSubmit = document.getElementById('btnSubmit');
+  const btnClear = document.getElementById('btnClear');
+  const itemCountLabel = document.getElementById('itemCountLabel');
+
+  // Build rows
+  for (let i = 1; i <= MAX_ROWS; i++) {
+    const tr = document.createElement('tr');
+    tr.dataset.row = i;
+    tr.innerHTML = `
+      <td class="num">${i}</td>
+      <td class="col-vendor">
+        <input type="text" placeholder="Vendor name" data-field="vendor" data-row="${i}" />
+      </td>
+      <td class="col-desc">
+        <input type="text" placeholder="Description of item" data-field="desc" data-row="${i}" />
+      </td>
+      <td class="col-qty">
+        <input type="number" min="1" step="1" placeholder="0" data-field="qty" data-row="${i}" />
+      </td>
+      <td class="col-unit">
+        <select data-field="unit" data-row="${i}">
+          ${UNIT_OPTIONS.map(u => `<option value="${u}">${u || '— select —'}</option>`).join('')}
+        </select>
+      </td>
+      <td class="col-price">
+        <div class="price-wrap">
+          <span>$</span>
+          <input type="number" min="0" step="0.01" placeholder="0.00" data-field="price" data-row="${i}" />
+        </div>
+      </td>
+      <td class="col-total">
+        <span class="line-total empty" id="total-${i}">—</span>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  }
+
+  // Helpers
+  function getRowData(row) {
+    const tr = tbody.querySelector(`tr[data-row="${row}"]`);
+    return {
+      vendor: tr.querySelector('[data-field="vendor"]').value.trim(),
+      desc:   tr.querySelector('[data-field="desc"]').value.trim(),
+      qty:    parseFloat(tr.querySelector('[data-field="qty"]').value),
+      unit:   tr.querySelector('[data-field="unit"]').value,
+      price:  parseFloat(tr.querySelector('[data-field="price"]').value),
+    };
+  }
+
+  function isRowComplete(d) {
+    return d.vendor && d.desc && !isNaN(d.qty) && d.qty > 0 && d.unit && !isNaN(d.price) && d.price >= 0;
+  }
+
+  function isRowTouched(d) {
+    return d.vendor || d.desc || !isNaN(d.qty) || d.unit || !isNaN(d.price);
+  }
+
+  function formatCurrency(n) {
+    return '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  }
+
+  function recalculate() {
+    let grandTotal = 0;
+    let completeCount = 0;
+
+    for (let i = 1; i <= MAX_ROWS; i++) {
+      const d = getRowData(i);
+      const totalEl = document.getElementById(`total-${i}`);
+
+      if (isRowComplete(d)) {
+        const lineTotal = d.qty * d.price;
+        grandTotal += lineTotal;
+        completeCount++;
+        totalEl.textContent = formatCurrency(lineTotal);
+        totalEl.classList.remove('empty');
+      } else {
+        const hasQty = !isNaN(d.qty) && d.qty > 0;
+        const hasPrice = !isNaN(d.price) && d.price >= 0;
+        if (hasQty && hasPrice) {
+          const lineTotal = d.qty * d.price;
+          totalEl.textContent = formatCurrency(lineTotal);
+          totalEl.classList.remove('empty');
+        } else {
+          totalEl.textContent = '—';
+          totalEl.classList.add('empty');
+        }
+      }
+    }
+
+    grandTotalEl.textContent = formatCurrency(grandTotal);
+    btnSubmit.disabled = completeCount === 0;
+    itemCountLabel.textContent = `${completeCount} of ${MAX_ROWS} item${completeCount !== 1 ? 's' : ''} filled`;
+  }
+
+  // Event delegation — inputs & selects inside tbody
+  tbody.addEventListener('input', recalculate);
+  tbody.addEventListener('change', recalculate);
+
+  // Clear all
+  btnClear.addEventListener('click', () => {
+    if (!confirm('Clear all form fields? This cannot be undone.')) return;
+
+    // Meta fields
+    ['reqNumber','reqBy','reqDept','reqSchool','reqDate','reqYear'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+
+    // Line items
+    tbody.querySelectorAll('input, select').forEach(el => {
+      if (el.tagName === 'SELECT') el.selectedIndex = 0;
+      else el.value = '';
+    });
+
+    recalculate();
+  });
+
+  // Submit (placeholder)
+  btnSubmit.addEventListener('click', () => {
+    const toast = document.getElementById('toast');
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+  });
+
+  // Init
+  recalculate();
+</script>
+</body>
+</html>
