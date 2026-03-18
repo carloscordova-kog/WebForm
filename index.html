@@ -296,28 +296,12 @@
     <div class="meta-section">
       <h2>Requisition Details</h2>
       <div class="field">
-        <label>Requisition #</label>
-        <input type="text" id="reqNumber" placeholder="e.g. REQ-2026-001" />
-      </div>
-      <div class="field">
         <label>Requested By</label>
         <input type="text" id="reqBy" placeholder="Full name" />
       </div>
       <div class="field">
-        <label>Department / Grade</label>
-        <input type="text" id="reqDept" placeholder="e.g. Science Dept." />
-      </div>
-      <div class="field">
         <label>School / Campus</label>
         <input type="text" id="reqSchool" placeholder="School name" />
-      </div>
-      <div class="field">
-        <label>Date Needed</label>
-        <input type="date" id="reqDate" />
-      </div>
-      <div class="field">
-        <label>Academic Year</label>
-        <input type="text" id="reqYear" placeholder="e.g. 2025–2026" />
       </div>
     </div>
 
@@ -478,7 +462,7 @@
     if (!confirm('Clear all form fields? This cannot be undone.')) return;
 
     // Meta fields
-    ['reqNumber','reqBy','reqDept','reqSchool','reqDate','reqYear'].forEach(id => {
+    ['reqBy','reqSchool'].forEach(id => {
       document.getElementById(id).value = '';
     });
 
